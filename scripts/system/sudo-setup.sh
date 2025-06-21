@@ -7,6 +7,7 @@ while getopts "u:" opt; do
   esac
 done
 
+# Validations for user presence, format and existence within the system
 if [ -z "$USERNAME" ]; then
   echo "No user specified. Please provide a username with -u option."
   su_exit_code=1
@@ -18,10 +19,11 @@ elif ! id "$USERNAME" >/dev/null 2>&1; then
   su_exit_code=1
 fi
 
+# Only run the sudo script if the user was correct
 if [ "$su_exit_code" -eq 0 ]; then
   echo "Setting up sudo access for '$USERNAME'..."
   
-  # Create temporary script file
+  # Create temporary script file and populate it with the sudo setup commands
   TEMP_SCRIPT=$(mktemp)
   trap "rm -f $TEMP_SCRIPT" EXIT
   
@@ -50,15 +52,12 @@ else
 fi
 EOF
 
-  # Make it executable
+  # Script would only be readable and executable bt the owner, avoiding possible alterations
   chmod 500 "$TEMP_SCRIPT"
 
-  # Execute as root
+  # Execute the temp script as root and capture exit code
   su -c "$TEMP_SCRIPT"
   su_exit_code=$?
-
-  # Clean up
-  rm -f "$TEMP_SCRIPT"
 fi
 
 if [ "$su_exit_code" -eq 0 ]; then
