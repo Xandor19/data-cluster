@@ -22,7 +22,7 @@ curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" sh -s -
 
 Where "644" mode is an optional setup to install Rancher, a web GUI for cluster visualization and management.
 
-> [!INFO]
+> [!NOTE]
 >
 > At the time of the project, the stable release was v1.32.5+k3s1
 
