@@ -59,6 +59,58 @@ Within the scripts folder the `sudo-setup.sh` script automates the workflow to i
 
 While it contains some basic security features and validations, it's still potentially vulnerable and only intended for setup within this project, hence it should not be considered for real world use cases.
 
-## Static IP address
+## Remote Access
 
-In order to effectively interconnect the instances (and avoid more complex methods), the nodes should have an static IP address assigned in the local network. The following steps describe the process
+This section heavily depends on the real layout of the cluster. Physical nodes wouldn't require initial setup to be accessed over the network (as stated before, SSH server was included in the install). The developed scenario used virtual nodes running as VirtualBox guests. In such case (and in virtualized scenarios, but instructions are related to VirtualBox), it is required to set the network adapter to Bridged Adapter, for which:
+
+1. Go to the virtual machine settings
+
+2. Go to Network (or Networking) section
+
+3. In adapter 1 (or the active network adapter) set the "Connected to" field to Bridged Adapter
+
+4. If not auto-filled, set the name of the adapter to that of the host machine from the dropdown menu
+
+### Static IP address
+
+In order to effectively interconnect the instances (and avoid more complex methods), the nodes should have an static IP address assigned in the local network. The following steps describe the process:
+ 
+1. Identify the DHCP range of the local network (for routed-based networks, it is found on the router configuration page, usually 192.168.1.1)
+
+2. Identify the mask (usually 255.255.255.0)
+
+3. Define an IP address that complies with the mask but falls outside the DHCP range (for instance, for a range between 192.168.1.10 and 192.168.1.100 and mask 255.255.255.0, a safe address would be 192.168.1.150)
+
+4. Find the name of the network interface in use
+
+```sh
+ip -c link show
+```
+
+It should be the one displaying the "UP" state
+
+5. Create a backup of the network interfaces file
+
+```sh
+sudo cp /etc/network/interfaces /root/
+```
+
+6. And edit it (`sudo nano /etc/network/interfaces`) replacing the lines corresponding to the name of the identified network interface with:
+
+```sh
+auto <interface name>
+iface <interface name> inet static
+ address <desired ip address>
+ netmask <local network mask>
+ gateway <local network gateway>
+```
+
+7. Restart the networking service
+
+```sh
+sudo systemctl restart networking
+```
+
+> [!WARNING]
+>
+> If done via SSH will cause the session to end
